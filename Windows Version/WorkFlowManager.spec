@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['WorkFlowManager.py'],
+    ['Windows Version\\WorkFlowManager.py'],
     pathex=[],
     binaries=[],
     datas=[],
