@@ -146,7 +146,7 @@ class AspireAutomator(QWidget):
             return
 
         origem = self.base_path / "Modelos" / template_selecionado
-        destino = caminho_final / f"{self.ent_arquivo.text()}.crv"
+        destino = caminho_final / f"{self.ent_arquivo.text()}.crv3d"
 
         try:
             shutil.copy2(origem, destino)
