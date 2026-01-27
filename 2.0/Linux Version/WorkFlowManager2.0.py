@@ -9,15 +9,14 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QLineEdit, QPushButton, QComboBox, QLabel, 
                              QFileDialog, QRadioButton, QButtonGroup, QMessageBox,
                              QTabWidget, QFrame)
-from PyQt5.QtCore import Qt, pyqtSignal # Importamos pyqtSignal aqui
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QIcon, QFont, QPalette, QColor
 
 CONFIG_FILE = "config.json"
 
 class SoftwareTab(QWidget):
     """Componente reutilizável para cada aba de software."""
     
-    # Definimos um sinal customizado para avisar quando algo mudar
     config_updated = pyqtSignal()
     
     def __init__(self, software_name, template_ext, output_ext, parent=None):
@@ -35,15 +34,16 @@ class SoftwareTab(QWidget):
         layout.setSpacing(12)
 
         # --- Seção de Configuração ---
+        # Cor alterada para #bdc3c7 (cinza claro) para legibilidade no Dark Mode
         self.lbl_base = QLabel(f"Pasta Base {self.software_key.capitalize()}: Não Selecionada")
         self.lbl_base.setWordWrap(True)
-        self.lbl_base.setStyleSheet("color: #7f8c8d; font-style: italic;")
+        self.lbl_base.setStyleSheet("color: #bdc3c7; font-style: italic;")
         
         btn_base = QPushButton(f" Selecionar Pasta Base")
         btn_base.clicked.connect(self.select_base_path)
         
         self.lbl_templates = QLabel("Pasta de Modelos: Automática")
-        self.lbl_templates.setStyleSheet("color: #7f8c8d; font-size: 10px;")
+        self.lbl_templates.setStyleSheet("color: #bdc3c7; font-size: 10px;")
         
         btn_custom_tpl = QPushButton("Alterar Pasta de Modelos (Opcional)")
         btn_custom_tpl.setStyleSheet("font-size: 10px; height: 20px;")
@@ -108,6 +108,7 @@ class SoftwareTab(QWidget):
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background-color: #3d3d3d;")
         return line
 
     def select_base_path(self):
@@ -116,7 +117,7 @@ class SoftwareTab(QWidget):
             self.base_path = Path(path)
             self.lbl_base.setText(f"Base: {self.base_path}")
             self.refresh_templates()
-            self.config_updated.emit() # Dispara o sinal para o pai salvar
+            self.config_updated.emit()
 
     def select_custom_template_path(self):
         path = QFileDialog.getExistingDirectory(self, "Selecionar Pasta de Modelos")
@@ -124,7 +125,7 @@ class SoftwareTab(QWidget):
             self.custom_template_path = Path(path)
             self.lbl_templates.setText(f"Modelos: {self.custom_template_path}")
             self.refresh_templates()
-            self.config_updated.emit() # Dispara o sinal para o pai salvar
+            self.config_updated.emit()
 
     def get_template_dir(self):
         if self.custom_template_path:
@@ -192,23 +193,78 @@ class WorkflowHub(QWidget):
         self.tab_aspire = SoftwareTab("Aspire", ".crvt3d", ".crv3d")
         self.tab_sketchup = SoftwareTab("SketchUp", ".skp", ".skp")
         
-        # CONEXÃO DOS SINAIS: Quando a aba avisar, a Janela Principal salva
         self.tab_aspire.config_updated.connect(self.save_config)
         self.tab_sketchup.config_updated.connect(self.save_config)
 
         self.tabs.addTab(self.tab_aspire, "Vectric Aspire")
         self.tabs.addTab(self.tab_sketchup, "SketchUp")
 
+        # --- Estilização Dark Moderno ---
         self.setStyleSheet("""
-            QTabWidget::pane { border: 1px solid #dcdde1; background: white; }
-            QTabBar::tab:selected { border-bottom: 2px solid #3498db; font-weight: bold; }
-            QPushButton#runButton { background: #2ecc71; color: white; font-weight: bold; height: 40px; border-radius: 4px; }
+            QWidget { 
+                background-color: #1e1e1e; 
+                color: #ffffff; 
+                font-family: 'Segoe UI', Arial;
+            }
+            QTabWidget::pane { 
+                border: 1px solid #3d3d3d; 
+                background: #252526; 
+                top: -1px;
+            }
+            QTabBar::tab {
+                background: #2d2d2d;
+                padding: 10px 25px;
+                border: 1px solid #3d3d3d;
+                border-bottom: none;
+                margin-right: 2px;
+            }
+            QTabBar::tab:selected { 
+                background: #252526;
+                border-bottom: 2px solid #3498db; 
+                font-weight: bold; 
+            }
+            QLineEdit, QComboBox {
+                background-color: #3d3d3d;
+                border: 1px solid #555;
+                padding: 6px;
+                color: white;
+                border-radius: 4px;
+            }
+            QLineEdit:focus, QComboBox:focus {
+                border: 1px solid #3498db;
+            }
+            QPushButton {
+                background-color: #3e3e42;
+                border: 1px solid #555;
+                color: white;
+                padding: 6px;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #505050;
+            }
+            QPushButton#runButton { 
+                background: #27ae60; 
+                color: white; 
+                font-weight: bold; 
+                height: 45px; 
+                border: none;
+                margin-top: 10px;
+            }
+            QPushButton#runButton:hover {
+                background: #2ecc71;
+            }
+            QLabel {
+                color: #ecf0f1;
+            }
+            QRadioButton {
+                spacing: 8px;
+            }
         """)
 
         layout.addWidget(self.tabs)
 
     def save_config(self):
-        """Salva as configurações de todas as abas no JSON."""
         data = {
             "aspire": {
                 "base_path": str(self.tab_aspire.base_path or ""),
@@ -242,6 +298,25 @@ class WorkflowHub(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+
+    # --- Configuração Global da Paleta Dark para Diálogos ---
+    dark_palette = QPalette()
+    dark_palette.setColor(QPalette.Window, QColor(30, 30, 30))
+    dark_palette.setColor(QPalette.WindowText, Qt.white)
+    dark_palette.setColor(QPalette.Base, QColor(25, 25, 25))
+    dark_palette.setColor(QPalette.AlternateBase, QColor(30, 30, 30))
+    dark_palette.setColor(QPalette.ToolTipBase, Qt.white)
+    dark_palette.setColor(QPalette.ToolTipText, Qt.white)
+    dark_palette.setColor(QPalette.Text, Qt.white)
+    dark_palette.setColor(QPalette.Button, QColor(45, 45, 45))
+    dark_palette.setColor(QPalette.ButtonText, Qt.white)
+    dark_palette.setColor(QPalette.BrightText, Qt.red)
+    dark_palette.setColor(QPalette.Link, QColor(42, 130, 218))
+    dark_palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+    dark_palette.setColor(QPalette.HighlightedText, Qt.black)
+    
+    app.setPalette(dark_palette)
+
     window = WorkflowHub()
     window.show()
     sys.exit(app.exec_())

@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['Linux Version/WorkFlowManager2.0.py'],
+    ['2.0/Linux Version/WorkFlowManager2.0.py'],
     pathex=[],
     binaries=[],
     datas=[],
